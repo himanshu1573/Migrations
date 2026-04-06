@@ -1,0 +1,103 @@
+table_name	conname	contype	definition
+app_tokens	app_tokens_pkey	p	PRIMARY KEY (id)
+applications_id	applications_id_airtable_id_key	u	UNIQUE (airtable_id)
+applications_id	applications_id_form_filled_by_id_fkey	f	FOREIGN KEY (form_filled_by_id) REFERENCES screeners_profile(id) ON DELETE SET NULL
+applications_id	applications_id_pkey	p	PRIMARY KEY (id)
+applications_id	fk_applications_id_openings_id	f	FOREIGN KEY (openings_id) REFERENCES openings(id)
+applications_id	fk_applications_id_pid_taken_by_id	f	FOREIGN KEY (pid_taken_by_id) REFERENCES users(id)
+applications_id	fk_applications_id_profiles_database_id	f	FOREIGN KEY (profiles_database_id) REFERENCES profiles_database(id)
+applications_id	fk_applications_id_vendor_id	f	FOREIGN KEY (vendor_id) REFERENCES vendor_master(id)
+campaign_subscription	campaign_subscription_pkey	p	PRIMARY KEY (id)
+campaign_trigger	campaign_trigger_pkey	p	PRIMARY KEY (id)
+candidate_skill_map	candidate_skill_map_candidate_id_skill_id_key	u	UNIQUE (candidate_id, skill_id)
+candidate_skill_map	candidate_skill_map_overall_rating_check	c	CHECK (((overall_rating >= 1) AND (overall_rating <= 5)))
+candidate_skill_map	candidate_skill_map_pkey	p	PRIMARY KEY (id)
+candidate_skill_map	candidate_skill_map_pre_screening_ai_rating_check	c	CHECK (((pre_screening_ai_rating >= 0) AND (pre_screening_ai_rating <= 5)))
+candidate_skill_map	candidate_skill_map_self_rating_check	c	CHECK (((self_rating >= 1) AND (self_rating <= 10)))
+candidate_skill_map	candidate_skill_map_skill_id_fkey	f	FOREIGN KEY (skill_id) REFERENCES skill_master(id) ON DELETE CASCADE
+client_department	client_department_airtable_id_key	u	UNIQUE (airtable_id)
+client_department	client_department_pkey	p	PRIMARY KEY (id)
+client_department	fk_client_department_client_name_id	f	FOREIGN KEY (client_name_id) REFERENCES client_master(id)
+client_master	client_master_airtable_id_key	u	UNIQUE (airtable_id)
+client_master	client_master_pkey	p	PRIMARY KEY (id)
+difficulties	difficulties_level_name_key	u	UNIQUE (level_name)
+difficulties	difficulties_pkey	p	PRIMARY KEY (id)
+documents_master	documents_master_airtable_id_key	u	UNIQUE (airtable_id)
+documents_master	documents_master_pkey	p	PRIMARY KEY (id)
+documents_master_client_departments	documents_master_client_departments_client_department_id_fkey	f	FOREIGN KEY (client_department_id) REFERENCES client_department(id) ON DELETE CASCADE
+documents_master_client_departments	documents_master_client_departments_document_master_id_fkey	f	FOREIGN KEY (document_master_id) REFERENCES documents_master(id) ON DELETE CASCADE
+documents_master_client_departments	documents_master_client_departments_pkey	p	PRIMARY KEY (document_master_id, client_department_id)
+jd_generator_history	jd_generator_history_pkey	p	PRIMARY KEY (id)
+locations	locations_airtable_id_key	u	UNIQUE (airtable_id)
+locations	locations_pkey	p	PRIMARY KEY (id)
+naukri_candidates	naukri_candidates_folder_id_fkey	f	FOREIGN KEY (folder_id) REFERENCES naukri_folders(id) ON DELETE SET NULL
+naukri_candidates	naukri_candidates_pkey	p	PRIMARY KEY (id)
+naukri_folders	naukri_folders_folder_id_key	u	UNIQUE (folder_id)
+naukri_folders	naukri_folders_pkey	p	PRIMARY KEY (id)
+onboarding_events	onboarding_events_event_type_check	c	CHECK (((event_type)::text = ANY ((ARRAY['vendor_onboarding'::character varying, 'xpo_onboarding'::character varying, 'client_onboarding'::character varying, 'end_client_onboarding'::character varying, 'bgv'::character varying, 'bgv_doc_submission'::character varying, 'sow_signing'::character varying, 'crc_confirmation'::character varying])::text[])))
+onboarding_events	onboarding_events_pkey	p	PRIMARY KEY (id)
+onboarding_events	unique_selected_event	u	UNIQUE (selected_id, event_type)
+openai_call_logs	openai_call_logs_pkey	p	PRIMARY KEY (id)
+opening_skill_question	opening_skill_question_pkey	p	PRIMARY KEY (id)
+opening_skill_question	opening_skill_question_question_id_fkey	f	FOREIGN KEY (question_id) REFERENCES skill_question(id) ON DELETE CASCADE
+opening_skill_question	opening_skill_question_skill_map_id_fkey	f	FOREIGN KEY (skill_map_id) REFERENCES skill_map(id) ON DELETE CASCADE
+opening_skill_question	opening_skill_question_skill_map_id_question_id_key	u	UNIQUE (skill_map_id, question_id)
+openings	fk_openings_client_department_id	f	FOREIGN KEY (client_department_id) REFERENCES client_department(id)
+openings	fk_openings_client_id	f	FOREIGN KEY (client_id) REFERENCES client_master(id)
+openings	openings_airtable_id_key	u	UNIQUE (airtable_id)
+openings	openings_pkey	p	PRIMARY KEY (id)
+openings_locations_openings	openings_locations_openings_locations_id_fkey	f	FOREIGN KEY (locations_id) REFERENCES locations(id) ON DELETE CASCADE
+openings_locations_openings	openings_locations_openings_openings_id_fkey	f	FOREIGN KEY (openings_id) REFERENCES openings(id) ON DELETE CASCADE
+openings_locations_openings	openings_locations_openings_pkey	p	PRIMARY KEY (openings_id, locations_id)
+profiles_database	fk_profiles_database_location_id	f	FOREIGN KEY (location_id) REFERENCES locations(id)
+profiles_database	fk_profiles_database_vendors_id	f	FOREIGN KEY (vendors_id) REFERENCES vendor_master(id)
+profiles_database	profiles_database_airtable_id_key	u	UNIQUE (airtable_id)
+profiles_database	profiles_database_pkey	p	PRIMARY KEY (id)
+questions	questions_difficulty_id_fkey	f	FOREIGN KEY (difficulty_id) REFERENCES difficulties(id)
+questions	questions_pkey	p	PRIMARY KEY (id)
+questions	questions_skill_id_fkey	f	FOREIGN KEY (skill_id) REFERENCES skill_master(id) ON DELETE CASCADE
+ranking_jobs	ranking_jobs_pkey	p	PRIMARY KEY (id)
+room_vendors	room_vendors_pkey	p	PRIMARY KEY (room_id, vendor_id)
+room_vendors	room_vendors_room_id_fkey	f	FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
+room_vendors	room_vendors_vendor_id_fkey	f	FOREIGN KEY (vendor_id) REFERENCES vendor_master(id) ON DELETE CASCADE
+rooms	rooms_pkey	p	PRIMARY KEY (id)
+screener_assignments	screener_assignments_application_id_fkey	f	FOREIGN KEY (application_id) REFERENCES applications_id(id) ON DELETE CASCADE
+screener_assignments	screener_assignments_pkey	p	PRIMARY KEY (screener_id, application_id, role)
+screener_assignments	screener_assignments_role_check	c	CHECK (((role)::text = ANY ((ARRAY['screener'::character varying, 'tech_screener'::character varying, 'form_filler'::character varying])::text[])))
+screener_assignments	screener_assignments_screener_id_fkey	f	FOREIGN KEY (screener_id) REFERENCES screeners_profile(id) ON DELETE CASCADE
+screeners_profile	screeners_profile_airtable_id_key	u	UNIQUE (airtable_id)
+screeners_profile	screeners_profile_pkey	p	PRIMARY KEY (id)
+screenings	fk_screenings_application_id	f	FOREIGN KEY (application_id) REFERENCES applications_id(id)
+screenings	fk_screenings_candidate_id	f	FOREIGN KEY (candidate_id) REFERENCES profiles_database(id)
+screenings	fk_screenings_vendor_id	f	FOREIGN KEY (vendor_id) REFERENCES vendor_master(id)
+screenings	screenings_airtable_id_key	u	UNIQUE (airtable_id)
+screenings	screenings_pkey	p	PRIMARY KEY (id)
+screenings	screenings_room_id_fkey	f	FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL
+screenings	screenings_screener_id_fkey	f	FOREIGN KEY (screener_id) REFERENCES screeners_profile(id) ON DELETE SET NULL
+skill_level_master	skill_level_master_level_key	u	UNIQUE (level)
+skill_level_master	skill_level_master_pkey	p	PRIMARY KEY (id)
+skill_map	skill_map_level_id_fkey	f	FOREIGN KEY (level_id) REFERENCES skill_level_master(id) ON DELETE SET NULL
+skill_map	skill_map_opening_id_skill_id_key	u	UNIQUE (opening_id, skill_id)
+skill_map	skill_map_pkey	p	PRIMARY KEY (id)
+skill_map	skill_map_skill_id_fkey	f	FOREIGN KEY (skill_id) REFERENCES skill_master(id) ON DELETE CASCADE
+skill_master	skill_master_pkey	p	PRIMARY KEY (id)
+skill_master	skill_master_skill_name_key	u	UNIQUE (skill_name)
+skill_master_duplicate	skill_master_duplicate_master_skill_id_fkey	f	FOREIGN KEY (master_skill_id) REFERENCES skill_master_duplicate(id)
+skill_master_duplicate	skill_master_duplicate_pkey	p	PRIMARY KEY (id)
+skill_master_duplicate	skill_master_duplicate_skill_name_key	u	UNIQUE (skill_name)
+skill_question	skill_question_difficulty_level_check	c	CHECK ((difficulty_level = ANY (ARRAY['easy'::text, 'moderate'::text, 'difficult'::text])))
+skill_question	skill_question_expertise_level_fkey	f	FOREIGN KEY (expertise_level) REFERENCES skill_level_master(id) ON DELETE RESTRICT
+skill_question	skill_question_pkey	p	PRIMARY KEY (id)
+skill_question	skill_question_skill_id_fkey	f	FOREIGN KEY (skill_id) REFERENCES skill_master(id) ON DELETE CASCADE
+status_config	status_config_domain_code_key	u	UNIQUE (domain, code)
+status_config	status_config_pkey	p	PRIMARY KEY (id)
+users	fk_users_screener_profile_id	f	FOREIGN KEY (screener_profile_id) REFERENCES screeners_profile(id) ON DELETE SET NULL
+users	users_airtable_id_key	u	UNIQUE (airtable_id)
+users	users_auth_user_id_key	u	UNIQUE (auth_user_id)
+users	users_pkey	p	PRIMARY KEY (id)
+users	users_vendor_id_fkey	f	FOREIGN KEY (vendor_id) REFERENCES vendor_master(id) ON DELETE SET NULL
+vendor_master	vendor_master_airtable_id_key	u	UNIQUE (airtable_id)
+vendor_master	vendor_master_pkey	p	PRIMARY KEY (id)
+vendor_openings	vendor_openings_opening_id_fkey	f	FOREIGN KEY (opening_id) REFERENCES openings(id) ON DELETE CASCADE
+vendor_openings	vendor_openings_pkey	p	PRIMARY KEY (vendor_id, opening_id)
+vendor_openings	vendor_openings_vendor_id_fkey	f	FOREIGN KEY (vendor_id) REFERENCES vendor_master(id) ON DELETE CASCADE

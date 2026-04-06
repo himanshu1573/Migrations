@@ -1,59 +1,9 @@
 # XPO ATS Minimal Schema Analysis
 
-Analyzed on: 2026-03-13
-
-## Scope
-
-This analysis is based on:
-
-- Local XPO ATS application code in `/Users/himanshup/Expo/XPO-ATS`
-- Local migration and schema artifacts in `/Users/himanshup/Expo/migrations`
-- Official Airtable docs
-- Official Supabase docs
-
-Primary local evidence used:
-
-- `XPO-ATS/lib/airtable.ts`: current Airtable read/write behavior for openings, candidates, applications, screenings, rooms, screeners, and users
-- `XPO-ATS/lib/supabase.ts`: current Supabase read/write behavior for Naukri, skills, logs, and ranking
-- `XPO-ATS/app/api/screeningList/route.ts`: strongest example of Airtable lookup-shaped API composition
-- `XPO-ATS/app/api/book-slot/route.ts`: strongest example of scheduling business rules currently enforced in code
-- `XPO-ATS/app/api/submit-recruitment/route.ts`: candidate dedup and candidate/application creation flow
-- `XPO-ATS/app/api/submit-c2c/route.ts`: C2C candidate and application creation flow
-- `migrations/live_supabase_schema_2026-03-12.sql`: current live PG schema snapshot
-- `migrations/airtable-sync-service/sync.js`: actual Airtable-to-PG mapping logic
-- `migrations/XPO_ATS_DATABASE_SCHEMA.md`: normalized target schema reference used by the project
-- `XPO-ATS/scripts/airtable_audit_report.json`: useful counts and field-pattern evidence from Airtable
-
-Key external references:
-
-- Airtable Web API overview: [https://support.airtable.com/docs/public-rest-api](https://support.airtable.com/docs/public-rest-api)
-- Airtable API limits: [https://support.airtable.com/docs/managing-api-call-limits-in-airtable](https://support.airtable.com/docs/managing-api-call-limits-in-airtable)
-- Airtable linked records: [https://support.airtable.com/docs/linking-records-in-airtable](https://support.airtable.com/docs/linking-records-in-airtable)
-- Airtable lookup fields: [https://support.airtable.com/docs/lookup-field-overview](https://support.airtable.com/docs/lookup-field-overview)
-- Airtable rollup fields: [https://support.airtable.com/docs/rollup-field-overview](https://support.airtable.com/docs/rollup-field-overview)
-- Supabase joins and nesting: [https://supabase.com/docs/guides/database/joins-and-nesting](https://supabase.com/docs/guides/database/joins-and-nesting)
-- Supabase Data API hardening: [https://supabase.com/docs/guides/database/hardening-data-api](https://supabase.com/docs/guides/database/hardening-data-api)
-- Supabase password security: [https://supabase.com/docs/guides/auth/password-security](https://supabase.com/docs/guides/auth/password-security)
-
-## Executive Result
-
-The repo is currently in a mixed state:
-
-- Airtable is still the operational source of truth for the core ATS workflow.
-- Supabase/Postgres is already the source of truth for newer modules like skills, Naukri, ranking, logging, and campaign automation.
-- The migration direction is correct, but the current PG model still carries legacy inconsistencies, and the app still depends on Airtable lookup/rollup/copy fields in several hot paths.
-
-The concrete recommendation is:
-
-1. Keep the ATS core on a normalized Postgres schema with UUID foreign keys.
-2. Treat Airtable only as a migration bridge and temporary sync input, not as the long-term relational model.
-3. Keep only the junction tables that represent real many-to-many relationships.
-4. Remove copied fields, reverse links, and mixed key strategies.
-5. Split "core ATS" tables from "sidecar product" tables like Naukri, ranking, prompts, logs, and campaign automation.
-
-## What The App Actually Uses Today
-
 ### Airtable-backed core ATS flows
+
+//generate screening report from dashboard .
+<!-- // edited_psr and tech self rating can be removed -->
 
 The following business-critical routes still read or write Airtable directly:
 
@@ -95,95 +45,8 @@ The following areas are already PG/Supabase-based:
 - `openai_call_logs`
 - `app_tokens`
 
-### Important mixed-mode reality
 
-The most important hybrid areas are:
-
-- `screeningList`: Airtable for screenings/applications/openings/profiles, Supabase for skill evaluation data.
-- `book-slot`: Airtable for screening creation and candidate/application validation, Supabase for skill-violation justification updates.
-- `naukri/create-draft`: Supabase folder lookup, then Airtable draft candidate creation.
-
-This means the schema design must prioritize the core ATS entities first, then fold in sidecar modules.
-
-## Airtable And API Constraints That Matter For Schema Design
-
-From the current official Airtable docs:
-
-- Airtable linked records are the actual relationship primitive.
-- Lookup fields and rollup fields are derived from linked records, not canonical source data.
-- Lookup values behave like arrays and can change shape based on linked records.
-- Airtable Web API omits empty fields in responses.
-- Airtable Web API rate limiting is strict enough that lookup-heavy wide reads do not scale well as a core transactional API shape.
-
-Design implication:
-
-- Do not model the Postgres schema around Airtable lookup columns like `Candidate Name (from Candidate Unique ID)` or `Locations_Openings_Rollup (from Openings) (from Candidate ID)`.
-- Model only the base facts and recreate projections through SQL joins, views, or API composition.
-
-From the current official Supabase docs:
-
-- The data API automatically detects foreign-key relationships.
-- Nested joins work best when the schema uses real foreign keys and real join tables.
-- Public-schema API exposure must be protected with RLS.
-- Auth should not rely on plaintext passwords stored in application tables.
-
-Design implication:
-
-- A normalized Postgres schema is not only acceptable, it is the shape that Supabase APIs work best with.
-- If you normalize correctly, the API layer becomes simpler, not harder.
-
-## Current Problems In The Existing Model
-
-### 1. Core ATS is still Airtable-shaped in the app layer
-
-The app still reads many copied and lookup fields such as:
-
-- `Name (from Screener) (from Applications_ID) (from Candidate ID)`
-- `Locations_Openings_Rollup (from Openings) (from Candidate ID)`
-- `Screening Report (from Candidate Unique ID)`
-- `Interview slots (from Openings) (from Candidate ID)`
-
-These are presentation fields, not source-of-truth fields.
-
-### 2. Skills are split across three inconsistent designs
-
-Current skill-related tables are inconsistent:
-
-- `skill_map` uses legacy numeric `opening_id`
-- `candidate_skill_map` uses text `candidate_id`
-- `candidate_skills` uses UUID foreign keys
-
-This is the clearest place where the schema is currently not normalized enough.
-
-### 3. Naukri tables use text IDs instead of real FKs
-
-Current `naukri_folders` stores:
-
-- `opening_id TEXT`
-- `vendor_id TEXT`
-
-In practice these are not canonical Postgres foreign keys. They are bridge values.
-
-### 4. Important business rules exist only in application code
-
-The app enforces rules in code that should exist in the database:
-
-- one application per `(candidate, opening, vendor)`
-- one room booking per slot
-- duplicate-candidate detection by contact data
-
-The live schema does not currently enforce the most important of these.
-
-### 5. Security is still legacy-style
-
-Current tables still contain plaintext passwords:
-
-- `vendor_master.password`
-- `users.password`
-
-This should not exist in the target design.
-
-### 6. Some PG columns exist but are not truly part of the working system
+### 1. Some PG columns exist but are not truly part of the working system
 
 Examples:
 
@@ -191,22 +54,17 @@ Examples:
 - `screeners_profile.vendor_id` exists but is not meaningfully used by the app.
 - `users.screener_profile_id` exists but the create/update flows still operate against Airtable.
 
-### 7. Room vendor exclusivity is missing from PG
+### 2. Room vendor exclusivity is missing from PG
 
 The Airtable `Rooms` model includes `Exclusive Vendors`, and booking logic depends on it.
 The current PG `rooms` table has no equivalent junction table.
 
 This is a schema gap, not just a migration gap.
 
-## Minimal Canonical ATS Schema
-
-This is the recommended long-term core schema.
-
-Only tables that represent real business entities or real many-to-many relationships are included.
 
 ### A. Master tables
 
-#### `vendors`
+#### `vendor_master ✅`
 
 Canonical vendor/partner master.
 
@@ -218,13 +76,13 @@ Core columns:
 - `name TEXT NOT NULL`
 - `type TEXT`
 - `status TEXT`
-- `linkedin_url TEXT`
 - `revenue_model TEXT`
 - `vendor_status TEXT`
 - `primary_poc_name TEXT`
 - `primary_poc_email TEXT`
 - `primary_poc_phone TEXT`
 - `additional_poc_emails TEXT[]`
+- `access_naukri_folders`
 - `created_at`
 - `updated_at`
 
@@ -233,7 +91,7 @@ Notes:
 - Do not store passwords here.
 - `vendor_code` is the current `vendor_id_number`.
 
-#### `clients master`
+#### `client_master ✅`
 
 Canonical client/company master.
 
@@ -244,10 +102,11 @@ Core columns:
 - `name TEXT NOT NULL`
 - `industry TEXT`
 - `requirements`
+- `SPOC`
 - `created_at`
 - `updated_at`
 
-#### `client_departments`
+#### `client_department ✅`
 
 Department within a client.
 
@@ -255,7 +114,7 @@ Core columns:
 
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
-- `client_id UUID NOT NULL FK -> clients.id`
+- `client_id UUID NOT NULL FK -> client_master.id`
 - `Department_name TEXT NOT NULL`
 - `primary_poc_name TEXT`
 - `primary_poc_email TEXT`
@@ -271,9 +130,9 @@ Core columns:
 
 Constraint:
 
-- `UNIQUE (client_id, name)`
+- `UNIQUE (client_name_id, name)`
 
-#### `locations`
+#### `locations ✅`
 
 Reusable location lookup.
 
@@ -291,7 +150,7 @@ Constraint:
 
 ### B. Opening tables
 
-#### `openings`
+#### `openings ✅`
 
 Canonical requisition record.
 
@@ -300,8 +159,8 @@ Core columns:
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
 - `opening_code INTEGER UNIQUE NOT NULL`
-- `client_id UUID NOT NULL FK -> clients.id`
-- `client_department_id UUID NULL FK -> client_departments.id`
+- `client_id UUID NOT NULL FK -> client_master.id`
+- `client_department_id UUID NULL FK -> client_department.id`
 - `job_title TEXT NOT NULL`
 - `status TEXT NOT NULL`
 - `experience_level TEXT`
@@ -311,26 +170,27 @@ Core columns:
 - `client_billing NUMERIC`
 - `duration_months NUMERIC`
 - `date_opened DATE`
-- `onboarding_process_notes TEXT confusion--X`
+- `onboarding_process_notes TEXT`
 - `comments TEXT`
 <!-- - `bline_id TEXT` -->
 - `max_ctc_lpa NUMERIC`
 - `max_vendor_budget NUMERIC`
 - `candidate_type TEXT`
 - `job_group TEXT[]`
-<!-- - `job_visibility TEXT` -->
-- `job_bench_type TEXT`
+- `job_visibility TEXT`
+- `job_bench_type enum`
 - `maximum_joining_period_days NUMERIC`
 - `maximum_notice_period_allowed NUMERIC`
-<!-- - `partner_recruitment_fee_pct NUMERIC` -->
+- `partner_recruitment_fee_pct NUMERIC`
 - `interview_slots TEXT`
 - `questionnaire TEXT`
-<!-- - `coding_q1 TEXT`
+- `coding_q1 TEXT`
 - `coding_q2 TEXT`
 - `skill_coding_q1 TEXT`
-- `skill_coding_q2 TEXT` -->
+- `skill_coding_q2 TEXT`
 - `advisory TEXT`
 - `MASTER PID_document`
+- `is_exclusive BOOLEAN NOT NULL DEFAULT FALSE`
 - `raw_jd_from_client JSONB`
 - `created_at`
 - `updated_at`
@@ -341,7 +201,7 @@ Do not keep:
 - copied location rollups
 - copied profile/application back-references
 
-#### `opening_locations`
+#### `openings_locations_openings`
 
 Real many-to-many relation between openings and locations.
 
@@ -354,16 +214,16 @@ Constraint:
 
 - `PRIMARY KEY (opening_id, location_id)`
 
-#### `opening_vendors`
+#### `vendor_openings`
 
 Real many-to-many relation between openings and vendors.
 
 Columns:
 
 - `opening_id UUID FK -> openings.id`
-- `vendor_id UUID FK -> vendors.id`
-- `is_exclusive BOOLEAN NOT NULL DEFAULT FALSE`
-- `assigned_at TIMESTAMPTZ`
+- `vendor_id UUID FK -> vendor_master.id`
+<!-- - `is_exclusive BOOLEAN NOT NULL DEFAULT FALSE` this will be in opening level
+- `assigned_at TIMESTAMPTZ` -->
 
 Constraint:
 
@@ -376,11 +236,13 @@ This is the correct place for:
 
 # C. Candidate and application tables
 
-#### `candidates`
+#### `profiles_database`
 
 Canonical candidate profile. One candidate should live here once.
 
-Core columns:
+**SECTION 1: Columns That STAY in `profiles_database` (Profile-Level Facts)**
+
+Profile-specific information that belongs to the candidate identity, not changing per application or screening.
 
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
@@ -389,120 +251,151 @@ Core columns:
 - `email TEXT`
 - `phone TEXT`
 - `current_company TEXT`
-- `current_location TEXT`
-- `preferred_location_text TEXT`
-- `location_id UUID NULL FK -> locations.id`
-- `primary_skill TEXT`
-- `candidate_type TEXT`
-- `bench_type TEXT`
-- `notice_period TEXT`
-- `last_working_day DATE`
-- `is_resigned BOOLEAN`
-- `ctc_lpa NUMERIC`
-- `ectc_lpa NUMERIC`
-- `candidate_cost NUMERIC`
-- `govt_id TEXT`
-- `type_of_id TEXT`
-- `communication_rating NUMERIC`
-- `confidence_rating NUMERIC`
-- `tech_self_rating NUMERIC`
-- `career_gap TEXT`
-- `recruitment_notes TEXT`
-- `cv_link TEXT`
-- `edited_cv TEXT`
-- `screening_report TEXT`
-- `edited_psr TEXT`
-- `candidate_document TEXT`
-- `lyncogs TEXT`
-- `lyncogs_summary TEXT`
-- `project_summary TEXT`
-- `employment_history TEXT`
-- `gap_analysis TEXT`
-- `jumping_frequency NUMERIC`
-- `extracted_skills TEXT`
-- `vendor_owner_id UUID NULL FK -> vendors.id`
-- `is_draft BOOLEAN`
-- `created_at`
-- `updated_at`
+- `location_id UUID NULL FK -> locations.id` (candidate's home location)
+- `notice_period TEXT` (career-wide notice period)
+- `last_working_day DATE` (career-wide last day)
+- `is_resigned BOOLEAN` (career status)
+- `ctc_lpa NUMERIC` (current CTC - career fact)
+- `ectc_lpa NUMERIC` (expected CTC - career expectations)
+- `cv_link TEXT` (primary CV version)
+- `edited_cv TEXT` (candidate's edited CV)
+- `employment_history TEXT` (career progression)
+- `gap_analysis TEXT` (general career gaps, not screening-specific)
+- `jumping_frequency NUMERIC` (career pattern/volatility)
+- `vendor_owner_id UUID NULL FK -> vendor_master.id` (who sourced this candidate)
+- `is_draft BOOLEAN` (profile draft status)
+- `created_at TIMESTAMPTZ`
+- `updated_at TIMESTAMPTZ`
 
-Recommended constraints:
+
+- `communication_rating NUMERIC` 
+- `confidence_rating NUMERIC`
+- `tech_self_rating NUMERIC` 
+- `career_gap TEXT` ⬅️ 
+- `govt_id` / `type_of_id` / `date_of_birth` / `linkedin_url` - OMITTED (Not Needed)
+---
+
+**SECTION 2: Columns MOVED to `applications_id` Table (Application-Level Facts)**
+
+These are specific to a candidate's submission for a particular opening. Same candidate may have different values across different applications.
+
+*Add these columns to `applications_id` table:*
+
+- `candidate_type TEXT` ⬅️ **MOVED FROM profiles_database** — describes applicant type specifically for THIS opening
+- `bench_type TEXT` ⬅️ **MOVED FROM profiles_database** — bench classification specifically for THIS role
+- `candidate_cost NUMERIC` ⬅️ **MOVED FROM profiles_database** — cost to hire specifically for THIS position (varies per opening)
+- `recruitment_notes TEXT` ⬅️ **MOVED FROM profiles_database** — notes specific to THIS submission
+- 
+<!-- - `lyncogs TEXT` ⬅️ **MOVED FROM profiles_database** — compliance check result for THIS application non needed
+- `lyncogs_summary TEXT` ⬅️ **MOVED FROM profiles_database** — compliance summary for THIS application not needed
+-->
+---
+
+**SECTION 3: Columns MOVED to `screenings` Table (Screening Event-Level Facts)**
+
+These are evaluation outcomes from screening events, not candidate profile data. Same candidate may have different ratings across different screening rounds.
+
+*Add these columns to `screenings` table:*
+
+
+- `pre_screening_report TEXT` ⬅️ **MOVED FROM profiles_database** — assessment report generated from THIS screening event
+- `post_screening_report TEXT` (rename from `edited_psr`) ⬅️ **MOVED FROM profiles_database** — PSR generated from THIS screening
+
+
+**Recommended constraints for refactored `profiles_database`:**
 
 - `UNIQUE (candidate_code)`
 - partial unique index on normalized phone when present
 
-Reason:
-
+**Reason:**
 - current app already treats mobile number as a cross-vendor duplicate guard
 
-#### `applications`
+------
 
-This is the real center of the ATS.
+**Clean Result:** `profiles_database` table now holds ONLY true candidate profile data (17 columns after cleanup)
 
-Core columns:
+#### `applications_id`
+This is the real center of the ATS. Represents a candidate's submission for a specific opening with a specific vendor.
+
+**Core/Foreign Key Columns:**
 
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
-- `candidate_id UUID NOT NULL FK -> candidates.id`
+- `candidate_id UUID NOT NULL FK -> profiles_database.id`
 - `opening_id UUID NOT NULL FK -> openings.id`
-- `vendor_id UUID NOT NULL FK -> vendors.id`
-- `pid_taken_by_user_id UUID NULL FK -> internal_users.id`
+- `vendor_id UUID NOT NULL FK -> vendor_master.id`
+- `pid_taken_by_user_id UUID NULL FK -> users.id`
+screening id fk 
+
+**SECTION 1: Existing Application-Level Columns (Keep)**
+
 - `status TEXT NOT NULL`
-- `status_remarks TEXT`
-- `next_task TEXT`
+- `next_task enum`
 - `experience_level_candidate TEXT`
-- `screening_clear_date DATE`
+- `screening_clear_date DATE`??????
 - `follow_up_date DATE`
 - `followup_email_status TEXT`
-- `clients_feedback_status TEXT`
-- `clients_interview_feedback TEXT`
 - `send_mail BOOLEAN`
-- `send_to_client TEXT`
+- `send_to_client enum`
 - `cv_sent_to_client_date TIMESTAMPTZ`
 - `cv_sent_to_client_date_last_updated TIMESTAMPTZ`
-- `screening_report_link TEXT`
-- `screening_fathom_links TEXT`
-- `post_screening_report TEXT`
-- `pre_l1_transcript TEXT`
-- `transcript TEXT`
-- `link_post_interview_questionnaire TEXT`
-- `status_post_interview_questionnaire TEXT`
+- `screening_report_link TEXT` this is moved to screening
+- `screening_fathom_links_transcript TEXT this is prescreening report` this is moved screening
+- `link_post_interview_questionnaire TEXT this is pid`
+<!-- - `status_post_interview_questionnaire TEXT` -->
 - `other_offers TEXT`
-- `vs_remarks TEXT`
-- `opening_vendor_summary TEXT`
-- `panel_type TEXT`
-- `tech_screening TEXT`
-- `backup_candidate TEXT`
-- `backup_option_1 TEXT`
-- `vendor_of_option_1 TEXT`
-- `backup_option_2 TEXT`
-- `vendor_of_option_2 TEXT`
-- `morning_followup_status TEXT`
-- `interview_coordination TEXT`
-- `candidate_followup TEXT`
-- `scheduling_coordination_started TEXT`
-- `form_filled_by TEXT`
-- `name_as_per_aadhar TEXT`
-- `id_type_submitted TEXT`
+<!-- - `vs_remarks TEXT  ` not needed --> 
+- `panel_type enum(direct client,end client,unconfirmed,..)`
+<!-- - `tech_screening TEXT` -->
+- `backup_candidate (enum(required ,not required))`
+<!-- - `backup_option_1 TEXT` -->
+<!-- - `vendor_of_option_1 TEXT `   ??? -->
+<!-- - `backup_option_2 TEXT` not needed
+- `vendor_of_option_2 TEXT` not needed -->
+
+- `morning_followup_status enum`
+- `interview_coordination TEXT`. who has coordinated with the person ??
+- `candidate_followup TEXT`. is follow up done for this .??
+- `scheduling_coordination_started enum` ??
+- `form_filled_by TEXT` screening level
+- `name_as_per_aadhar TEXT` candidate level
+- `id_type_submitted TEXT` candidate level
 - `revised_ctc_lpa NUMERIC`
 - `offboarding TEXT`
 - `offboarding_status TEXT`
-- `created_at`
-- `updated_at`
+- `preaccessing done` screening
+- `pre assessor name` screening
+- `pre assesssing remark` screening
+- `created_at TIMESTAMPTZ`
+- `updated_at TIMESTAMPTZ`
 
-Critical constraint:
+**SECTION 2: NEW Columns MOVED from `profiles_database` (Application Context)**
+
+These 7 columns are specific to THIS submission and may vary across different applications of the same candidate:
+
+- `candidate_type TEXT` ⬅️ **FROM profiles_database** — applicant type for this opening
+- `bench_type TEXT` ⬅️ **FROM profiles_database** — bench classification for this role
+- `candidate_cost NUMERIC` ⬅️ **FROM profiles_database** — cost to hire for this position
+- `recruitment_notes TEXT` ⬅️ **FROM profiles_database** — notes on this submission
+
+
+
+---
+
+**Critical constraint:**
 
 - `UNIQUE (candidate_id, opening_id, vendor_id)`
 
 That constraint is required because the current app already enforces exactly this in code.
 
-#### `application_screeners`
+#### `application_screeners` not needed 
 
 Real many-to-many relation between applications and screeners.
 
 Columns:
 
-- `application_id UUID FK -> applications.id`
-- `screener_id UUID FK -> screeners.id`
+- `application_id UUID FK -> applications_id.id`
+- `screener_id UUID FK -> screeners_profile.id`
 - `role TEXT CHECK IN ('screener', 'tech_screener', 'form_filler')`
 - `assigned_at TIMESTAMPTZ`
 
@@ -510,9 +403,36 @@ Constraint:
 
 - `PRIMARY KEY (application_id, screener_id, role)`
 
+#### `interview_rounds` (NEW TABLE)
+
+Replaces 7 flat columns from applications (client_l1/l2/l3_meeting_link, client_l1/l2/l3_screening_at, pre_l1_date_and_time).
+
+Core columns:
+
+- `id UUID PK`
+- `application_id UUID NOT NULL FK -> applications_id.id ON DELETE CASCADE`
+- `round_type VARCHAR(20) NOT NULL CHECK (round_type IN ('pre_l1', 'l1', 'l2', 'l3'))`
+- `scheduled_at TIMESTAMPTZ NOT NULL`
+- `meeting_link TEXT NULL`
+- `outcome VARCHAR(20) NULL CHECK (outcome IN ('pass', 'fail', 'no_show', 'rescheduled', 'awaited', 'cancelled'))`
+- `notes TEXT NULL`
+- `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+Indexes:
+
+- `idx_interview_rounds_application_id ON (application_id)`
+- `idx_interview_rounds_scheduled_at ON (scheduled_at)`
+- `idx_interview_rounds_round_type ON (round_type)`
+
+Migration:
+
+- Source: applications_id table (client_l1_screening_at, client_l1_meeting_link, client_l2_screening_at, client_l2_meeting_link, client_l3_screening_at, client_l3_meeting_link, pre_l1_date_and_time)
+- Unpivot: One row per round (pre_l1, l1, l2, l3) for each application
+- Drop from applications_id after backfill: 7 columns listed above
+
 ### D. Scheduling tables
 
-#### `rooms`
+#### `rooms✅`
 
 Canonical room/schedule definition.
 
@@ -524,19 +444,19 @@ Core columns:
 - `daily_end_time TIME`
 - `days_of_week TEXT[]`
 - `slot_duration_minutes INTEGER`
-- `meeting_link TEXT`
+<!-- - `meeting_link TEXT not needed` -->
 - `is_active BOOLEAN`
 - `created_at`
 - `updated_at`
 
 #### `room_vendors`
 
-Needed because Airtable `Rooms` currently supports `Exclusive Vendors`.
+Needed because Airtable `Rooms` currently supports `Exclusive Vendor_master`.
 
 Columns:
 
 - `room_id UUID FK -> rooms.id`
-- `vendor_id UUID FK -> vendors.id`
+- `vendor_id UUID FK -> vendor_master.id`
 
 Constraint:
 
@@ -549,56 +469,72 @@ Rule:
 
 #### `screenings`
 
-Scheduled screening events.
+Scheduled screening events. Each row represents one screening event where a candidate is evaluated.
 
-Core columns:
+**Core/Foreign Key Columns:**
 
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
-- `application_id UUID NOT NULL FK -> applications.id`
-- `candidate_id UUID NOT NULL FK -> candidates.id`
-- `vendor_id UUID NOT NULL FK -> vendors.id`
+- `application_id UUID NOT NULL FK -> applications_id.id`
+- `candidate_id UUID NOT NULL FK -> profiles_database.id`
+<!-- - `vendor_id UUID NOT NULL FK -> vendor_master.id` -->
 - `room_id UUID NULL FK -> rooms.id`
 - `scheduled_at TIMESTAMPTZ NOT NULL`
+
+**SECTION 1: Existing Screening-Level Columns (Keep)**
+
+Scheduling and logistics info for this screening event:
+
 - `status TEXT`
 - `meeting_link TEXT`
 - `admin_interview_link TEXT`
-- `ai_interview_link TEXT`
+<!-- - `ai_interview_link TEXT` -->
 - `organizer_email TEXT`
 - `created_email TEXT`
 - `event_id TEXT`
-- `slot_key TEXT`
+- `slot_key TEXT` 
 - `comments TEXT`
-- `screener_evaluation_report TEXT`
 - `screener_audit_report TEXT`
+prescreening report 
+prescrening jsonb
 - `answer_of_coding_q1 TEXT`
+- `post_screening_report TEXT`
+- `post_screening_json jsonb`
+- `transcript` vtt file
 - `answer_of_coding_q2 TEXT`
 - `interview_breadth_rating NUMERIC`
-- `interview_depth_rating NUMERIC`
-- `sop_flow_adherence_rating NUMERIC`
-- `communication_quality_rating NUMERIC`
+- `interview_depth_rating NUMERIC` audit 
+- `sop_flow_adherence_rating NUMERIC`screener audit
+- `communication_quality_rating NUMERIC` screener audit
 - `overall_screening_effectiveness_rating NUMERIC`
-- `created_at`
-- `updated_at`
+- `question_wise assessment jsonb` 
+- `Coding_Question_Assessment jsonb` 
+- `screening_coverage jsonb` 
+- `Q1 assessed` 
+- `q2 assessed` 
+- `answer of coding q1`
+- `answer of coding q2` 
+- `created_at TIMESTAMPTZ`
+we can merge all the reports data of a post screening in to a single json review needed.
+- `updated_at TIMESTAMPTZ`
 
+**SECTION 2: NEW Columns MOVED from `profiles_database` (Screening Assessment Results)**
+
+These 6 columns are evaluation results FROM this screening event. Same candidate may have different ratings across different screening rounds:
+
+
+- `screening_report url` ⬅️ **FROM profiles_database** — assessment report generated from THIS screening event
+- `post_screening_report TEXT` ⬅️ **FROM profiles_database** (rename from `edited_psr`) — PSR outcome from THIS screening
+
+---
 Recommended constraints:
 
 - `UNIQUE (slot_key)`
 - partial unique on `event_id` when not null
 
-Do not keep as canonical columns:
-
-- candidate name copy
-- vendor name copy
-- room name copy
-- skill copy
-- CV link copy
-
-Those can come from joins to `applications`, `candidates`, `openings`, and `rooms`.
-
 ### E. Post-selection tables
 
-#### `selected_candidates`
+<!-- #### `selected_candidates` not needed 
 
 Keep separate because onboarding is a real post-selection workflow.
 
@@ -606,52 +542,45 @@ Core columns:
 
 - `id UUID PK`
 - `airtable_id TEXT UNIQUE NULL`
-- `application_id UUID NOT NULL FK -> applications.id`
-- `bench_vendor_id UUID NULL FK -> vendors.id`
+- `application_id UUID NOT NULL FK -> applications_id.id`
+- `bench_vendor_id UUID NULL FK -> vendor_master.id`
 - `selection_date DATE`
 - `status TEXT`
 - `overall_status TEXT`
-- `assignee TEXT`
-- `attachments JSONB`
-- `pf_status TEXT`
+<!-- - `assignee TEXT` -->
+<!-- - `attachments JSONB` -->
+<!-- - `pf_status TEXT`
 - `pf_doc_remarks TEXT`
 - `university_docs_check TEXT`
 - `university_docs_remarks TEXT`
-- `finalized_ctc NUMERIC`
-- `is_fte BOOLEAN`
-- `invoice_raised TEXT`
-- `crc_confirmation_date DATE`
+<!-- - `finalized_ctc NUMERIC` -->
+<!-- - `is_fte BOOLEAN`
+<!-- - `invoice_raised TEXT` -->
+<!-- - `crc_confirmation_date DATE`
 - `offboarding TEXT`
 - `offboarding_status TEXT`
+- `xpo onboarding status`
+- `bgv status`
+- `bgv trigger date`
+- `sow signing date`
+- `offboarding_status TEXT`
+- `synechron onboarding status`
+- `synechron onboarding date`
 - `created_at`
-- `updated_at`
+- `updated_at --> 
 
 Recommended constraint:
 
-- `UNIQUE (application_id)`
+- `UNIQUE (application_id)` (on applications_id table)
 
-#### `onboarding_events`
-
-Normalized onboarding milestones.
-
-Columns:
-
-- `id UUID PK`
-- `selected_candidate_id UUID FK -> selected_candidates.id`
-- `event_type TEXT`
-- `event_date DATE`
-- `status TEXT`
-- `notes TEXT`
-- `created_at`
-- `updated_at`
 
 Constraint:
 
-- `UNIQUE (selected_candidate_id, event_type)`
+- `UNIQUE (selected_candidate_id, event_type)` -->
 
 ### F. People and auth tables
 
-#### `screeners`
+#### `screeners_profile ✅`
 
 Internal screener directory.
 
@@ -662,6 +591,7 @@ Core columns:
 - `name TEXT NOT NULL`
 - `phone TEXT`
 - `status TEXT`
+<!-- - `type TEXT` -->
 - `created_at`
 - `updated_at`
 
@@ -669,7 +599,7 @@ Recommendation:
 
 - do not keep `vendor_id` here unless screeners are truly vendor-owned in the business model
 
-#### `internal_users`
+#### `users ✅`
 
 Application user profile only, not password store.
 
@@ -679,8 +609,8 @@ Core columns:
 - `airtable_id TEXT UNIQUE NULL`
 - `auth_user_id UUID UNIQUE`
 - `username TEXT UNIQUE`
-- `role TEXT`
-- `screener_id UUID NULL FK -> screeners.id`
+- `role or typoe TEXT`
+- `screener_id UUID NULL FK -> screeners_profile.id`
 - `pid_authorization TEXT`
 - `created_at`
 - `updated_at`
@@ -689,7 +619,7 @@ Recommendation:
 
 - auth secrets belong in Supabase Auth, not here
 
-### G. Skills tables
+### G. Skills tables  this tables are from pg so need to make the changes strictly do not change at all  .
 
 This is where the current schema should be simplified most aggressively.
 
@@ -724,8 +654,8 @@ This replaces the split between `candidate_skill_map` and `candidate_skills`.
 Columns:
 
 - `id UUID PK`
-- `candidate_id UUID FK -> candidates.id`
-- `application_id UUID NULL FK -> applications.id`
+- `candidate_id UUID FK -> profiles_database.id`
+- `application_id UUID NULL FK -> applications_id.id`
 - `opening_id UUID NULL FK -> openings.id`
 - `skill_id BIGINT FK -> skills.id`
 - `required_level_id BIGINT NULL FK -> skill_levels.id`
@@ -783,19 +713,19 @@ Use this as the rulebook.
 
 | Fact | Canonical table |
 | --- | --- |
-| Vendor identity | `vendors` |
-| Client identity | `clients` |
-| Department PoCs | `client_departments` |
+| Vendor identity | `vendor_master` |
+| Client identity | `client_master` |
+| Department PoCs | `client_department` |
 | Location vocabulary | `locations` |
 | Opening/job requirements | `openings` |
-| Opening to location relation | `opening_locations` |
-| Opening to vendor visibility/exclusivity | `opening_vendors` |
-| Candidate profile | `candidates` |
-| Candidate ownership/vendor source | `candidates.vendor_owner_id` |
-| Candidate submitted to opening by vendor | `applications` |
-| Screeners assigned to an application | `application_screeners` |
+| Opening to location relation | `openings_locations_openings` |
+| Opening to vendor visibility/exclusivity | `vendor_openings` |
+| Candidate profile | `profiles_database` |
+| Candidate ownership/vendor source | `profiles_database.vendor_owner_id` |
+| Candidate submitted to opening by vendor | `applications_id` |
+| Screeners assigned to an application | `screener_assignments` |
 | Room availability definition | `rooms` |
-| Room exclusivity by vendor | `room_vendors` |
+| Room exclusivity by vendor | `room_vendors` (MISSING in PG) |
 | Scheduled screening event | `screenings` |
 | Selected/onboarding candidate record | `selected_candidates` |
 | Onboarding milestone | `onboarding_events` |
@@ -836,13 +766,13 @@ Already correct to remove or keep out:
 
 Must add:
 
-- `applications UNIQUE (candidate_id, opening_id, vendor_id)`
+- `applications_id UNIQUE (profiles_database_id, openings_id, vendor_id)`
 - `screenings UNIQUE (slot_key)`
-- `selected_candidates UNIQUE (application_id)`
+- `selected_candidates UNIQUE (application_id)` (MISSING in PG)
 
 Should add:
 
-- `candidates UNIQUE (candidate_code)`
+- `profiles_database UNIQUE (candidate_id)` (Existing)
 - partial unique on normalized phone
 - partial unique on `screenings.event_id`
 
@@ -898,9 +828,9 @@ Instead:
 
 ### Phase 2: Backfill and validate
 
-1. Backfill `applications.candidate_id`, `opening_id`, `vendor_id`.
+1. Backfill `applications_id.profiles_database_id`, `openings_id`, `vendor_id`.
 2. Backfill `screenings.room_id`.
-3. Backfill `opening_locations` and `opening_vendors`.
+3. Backfill `openings_locations_openings` and `vendor_openings`.
 4. Backfill unified skill assessment tables.
 5. Validate counts and random linked-record samples.
 
@@ -936,10 +866,10 @@ If the goal is "only needed tables, no duplicated facts, proper junctions, and o
 
 - Keep a normalized Postgres ATS core of about 15 to 18 tables.
 - Use junction tables only where the business is truly many-to-many:
-  - opening to vendors
-  - opening to locations
-  - application to screeners
-  - room to vendors
+  - opening to vendor_openings
+  - openings to openings_locations_openings
+  - applications_id to screener_assignments
+  - rooms to vendor_openings (Missing Gap)
   - opening to required skills
 - Collapse the current multi-model skill system into one UUID-based model.
 - Keep Naukri, ranking, automation, and logs outside the core ATS design.

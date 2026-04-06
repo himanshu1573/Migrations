@@ -1,0 +1,453 @@
+table_name	column_name	data_type	udt_name	is_nullable	column_default
+_legacy_applications_id_cleanup_20260324	id	uuid	uuid	YES	
+_legacy_applications_id_cleanup_20260324	airtable_id	text	text	YES	
+_legacy_applications_id_cleanup_20260324	update_airtable	boolean	bool	YES	
+_legacy_applications_id_cleanup_20260324	pre_l1_transcript	text	text	YES	
+_legacy_applications_id_cleanup_20260324	screening_report_link	text	text	YES	
+_legacy_applications_id_cleanup_20260324	post_screening_report	text	text	YES	
+_legacy_applications_id_cleanup_20260324	transcript	text	text	YES	
+_legacy_applications_id_cleanup_20260324	form_filled_by	character varying	varchar	YES	
+_legacy_profiles_database_cleanup_20260324	id	uuid	uuid	YES	
+_legacy_profiles_database_cleanup_20260324	airtable_id	text	text	YES	
+_legacy_profiles_database_cleanup_20260324	candidate_cost	numeric	numeric	YES	
+_legacy_profiles_database_cleanup_20260324	bench_type	character varying	varchar	YES	
+_legacy_profiles_database_cleanup_20260324	candidate_type	character varying	varchar	YES	
+_legacy_profiles_database_cleanup_20260324	recruitment_notes	text	text	YES	
+_legacy_profiles_database_cleanup_20260324	tech_self_rating	text	text	YES	
+_legacy_profiles_database_cleanup_20260324	comments	text	text	YES	
+_legacy_profiles_database_cleanup_20260324	screening_report	text	text	YES	
+_legacy_screenings_cleanup_20260324	id	uuid	uuid	YES	
+_legacy_screenings_cleanup_20260324	airtable_id	text	text	YES	
+_legacy_screenings_cleanup_20260324	candidate_name	character varying	varchar	YES	
+_legacy_screenings_cleanup_20260324	skill	text	text	YES	
+_legacy_screenings_cleanup_20260324	cv_link	text	text	YES	
+_legacy_screenings_cleanup_20260324	candidate_profile_id	uuid	uuid	YES	
+_legacy_screenings_cleanup_20260324	screener_assigned	character varying	varchar	YES	
+_legacy_screenings_cleanup_20260324	ai_interview_link	text	text	YES	
+_legacy_screenings_cleanup_20260324	screener_evaluation_report	text	text	YES	
+_legacy_screenings_cleanup_20260324	test_date	timestamp with time zone	timestamptz	YES	
+_legacy_screenings_cleanup_20260324	date	timestamp with time zone	timestamptz	YES	
+_legacy_screenings_cleanup_20260324	slotkey	character varying	varchar	YES	
+app_tokens	id	text	text	NO	'ms_graph_tokens'::text
+app_tokens	token_data	jsonb	jsonb	NO	
+app_tokens	created_at	timestamp with time zone	timestamptz	YES	now()
+app_tokens	updated_at	timestamp with time zone	timestamptz	YES	now()
+applications_id	id	uuid	uuid	NO	uuid_generate_v4()
+applications_id	airtable_id	text	text	NO	
+applications_id	vendor_id	uuid	uuid	YES	
+applications_id	openings_id	uuid	uuid	YES	
+applications_id	status	character varying	varchar	YES	
+applications_id	internal_screening_time_and_date	date	date	YES	
+applications_id	sow_signed_with_client_date	character varying	varchar	YES	
+applications_id	sow_signed_with_vendor_date	character varying	varchar	YES	
+applications_id	clients_onboarding_date	character varying	varchar	YES	
+applications_id	status_remarks	text	text	YES	
+applications_id	next_task	character varying	varchar	YES	
+applications_id	link_post_interview_questionnaire	text	text	YES	
+applications_id	status_post_interview_questionnaire	character varying	varchar	YES	
+applications_id	clients_feedback_status	character varying	varchar	YES	
+applications_id	screening_fathom_links	text	text	YES	
+applications_id	other_offers	text	text	YES	
+applications_id	candidates_preferred_slot	text	text	YES	
+applications_id	created_time	timestamp with time zone	timestamptz	YES	now()
+applications_id	send_mail	boolean	bool	YES	false
+applications_id	followup_email_status	character varying	varchar	YES	
+applications_id	experience_level_candidate	character varying	varchar	YES	
+applications_id	clients_interview_feedback	text	text	YES	
+applications_id	fnt_post_interview	text	text	YES	
+applications_id	last_modified	timestamp with time zone	timestamptz	YES	now()
+applications_id	lwd	date	date	YES	
+applications_id	follow_up_date	date	date	YES	
+applications_id	screening_clear_date	date	date	YES	
+applications_id	pid_taken_by_id	uuid	uuid	YES	
+applications_id	vs_remarks	text	text	YES	
+applications_id	profiles_database_id	uuid	uuid	YES	
+applications_id	send_to_client	character varying	varchar	YES	
+applications_id	revised_ctc_lpa	numeric	numeric	YES	
+applications_id	morning_followup_status	character varying	varchar	YES	
+applications_id	panel_type	character varying	varchar	YES	
+applications_id	tech_screening	text	text	YES	
+applications_id	cluely_report	text	text	YES	
+applications_id	backup_candidate	character varying	varchar	YES	
+applications_id	tracker_remarks	text	text	YES	
+applications_id	cv_sent_to_client_date	timestamp with time zone	timestamptz	YES	
+applications_id	cv_sent_to_client_date_last_updated	timestamp with time zone	timestamptz	YES	
+applications_id	name_as_per_the_aadhar	text	text	YES	
+applications_id	backup_option_1	text	text	YES	
+applications_id	vendor_of_option_1	text	text	YES	
+applications_id	backup_option_2	text	text	YES	
+applications_id	vendor_of_option_2	text	text	YES	
+applications_id	id_type_submitted	text	text	YES	
+applications_id	opening_vendor_summary	character varying	varchar	YES	
+applications_id	scheduling_coordination_started	character varying	varchar	YES	
+applications_id	interview_coordination	character varying	varchar	YES	
+applications_id	candidate_followup	character varying	varchar	YES	
+applications_id	offboarding	character varying	varchar	YES	
+applications_id	offboarding_status	character varying	varchar	YES	
+applications_id	created_at	timestamp with time zone	timestamptz	YES	now()
+applications_id	updated_at	timestamp with time zone	timestamptz	YES	now()
+applications_id	candidate_type	text	text	YES	
+applications_id	bench_type	text	text	YES	
+applications_id	candidate_cost	numeric	numeric	YES	
+applications_id	recruitment_notes	text	text	YES	
+applications_id	form_filled_by_id	uuid	uuid	YES	
+applications_id	candidate_document	text	text	YES	
+campaign_subscription	id	bigint	int8	NO	
+campaign_subscription	unique_id	text	text	NO	
+campaign_subscription	campaign_id	text	text	NO	
+campaign_subscription	subscription_id	text	text	NO	
+campaign_subscription	event_date	timestamp with time zone	timestamptz	NO	
+campaign_subscription	created_at	timestamp with time zone	timestamptz	NO	now()
+campaign_subscription	updated_at	timestamp with time zone	timestamptz	NO	now()
+campaign_trigger	id	bigint	int8	NO	
+campaign_trigger	campaign_id	text	text	NO	
+campaign_trigger	condition	jsonb	jsonb	YES	'{}'::jsonb
+campaign_trigger	created_at	timestamp with time zone	timestamptz	NO	now()
+campaign_trigger	updated_at	timestamp with time zone	timestamptz	NO	now()
+campaign_trigger	is_active	boolean	bool	NO	false
+campaign_trigger	field_conversions	jsonb	jsonb	YES	
+campaign_trigger	offset	bigint	int8	YES	
+candidate_skill_map	id	bigint	int8	NO	
+candidate_skill_map	candidate_id	text	text	NO	
+candidate_skill_map	skill_id	bigint	int8	NO	
+candidate_skill_map	self_rating	integer	int4	YES	
+candidate_skill_map	number_of_projects	integer	int4	YES	0
+candidate_skill_map	created_at	timestamp with time zone	timestamptz	YES	now()
+candidate_skill_map	summary	jsonb	jsonb	YES	
+candidate_skill_map	assessed	boolean	bool	YES	
+candidate_skill_map	skill_rating_assessment	jsonb	jsonb	YES	
+candidate_skill_map	conceptual_rating	real	float4	YES	
+candidate_skill_map	practical_rating	real	float4	YES	
+candidate_skill_map	coding_rating	real	float4	YES	
+candidate_skill_map	overall_rating	integer	int4	YES	
+candidate_skill_map	pre_screening_ai_rating	integer	int4	YES	
+candidate_skill_map	skills_violation_justification	text	text	YES	
+candidate_skill_map	pre_screening_ai_summary	jsonb	jsonb	YES	
+candidate_skill_map	application_id	text	text	YES	
+client_department	id	uuid	uuid	NO	uuid_generate_v4()
+client_department	airtable_id	text	text	NO	
+client_department	department_name	character varying	varchar	YES	
+client_department	client_name_id	uuid	uuid	YES	
+client_department	primary_poc	character varying	varchar	YES	
+client_department	primary_poc_phone_number	character varying	varchar	YES	
+client_department	primary_poc_role	character varying	varchar	YES	
+client_department	secondary_poc	character varying	varchar	YES	
+client_department	secondary_poc_phone_number	character varying	varchar	YES	
+client_department	secondary_poc_role	character varying	varchar	YES	
+client_department	primary_poc_email_id	character varying	varchar	YES	
+client_department	secondary_poc_email_id	character varying	varchar	YES	
+client_department	document_type	character varying	varchar	YES	
+client_department	created_at	timestamp with time zone	timestamptz	YES	now()
+client_department	updated_at	timestamp with time zone	timestamptz	YES	now()
+client_master	id	uuid	uuid	NO	uuid_generate_v4()
+client_master	airtable_id	text	text	NO	
+client_master	client_name	character varying	varchar	YES	
+client_master	client_industry	character varying	varchar	YES	
+client_master	spoc	character varying	varchar	YES	
+client_master	client_requirements	character varying	varchar	YES	
+client_master	created_at	timestamp with time zone	timestamptz	YES	now()
+client_master	updated_at	timestamp with time zone	timestamptz	YES	now()
+difficulties	id	integer	int4	NO	nextval('difficulties_id_seq'::regclass)
+difficulties	level_name	text	text	NO	
+documents_master	id	uuid	uuid	NO	gen_random_uuid()
+documents_master	airtable_id	text	text	NO	
+documents_master	name	text	text	YES	
+documents_master	created_at	timestamp with time zone	timestamptz	NO	now()
+documents_master	updated_at	timestamp with time zone	timestamptz	NO	now()
+documents_master_client_departments	document_master_id	uuid	uuid	NO	
+documents_master_client_departments	client_department_id	uuid	uuid	NO	
+jd_generator_history	id	uuid	uuid	NO	gen_random_uuid()
+jd_generator_history	job_title	text	text	NO	
+jd_generator_history	job_description	text	text	NO	
+jd_generator_history	analysis_results	jsonb	jsonb	NO	
+jd_generator_history	final_skills	jsonb	jsonb	NO	
+jd_generator_history	downloadable_doc_url	text	text	YES	
+jd_generator_history	created_at	timestamp with time zone	timestamptz	YES	CURRENT_TIMESTAMP
+jd_generator_history	updated_at	timestamp with time zone	timestamptz	YES	CURRENT_TIMESTAMP
+locations	id	uuid	uuid	NO	uuid_generate_v4()
+locations	airtable_id	text	text	NO	
+locations	name	character varying	varchar	YES	
+locations	created_at	timestamp with time zone	timestamptz	YES	now()
+locations	updated_at	timestamp with time zone	timestamptz	YES	now()
+naukri_candidates	id	uuid	uuid	NO	gen_random_uuid()
+naukri_candidates	airtable_record_id	text	text	YES	
+naukri_candidates	unique_candidate_id	text	text	NO	
+naukri_candidates	folder_id	uuid	uuid	YES	
+naukri_candidates	candidate_name	text	text	YES	
+naukri_candidates	email	text	text	YES	
+naukri_candidates	phone	text	text	YES	
+naukri_candidates	experience	text	text	YES	
+naukri_candidates	current_ctc	text	text	YES	
+naukri_candidates	expected_ctc	text	text	YES	
+naukri_candidates	current_designation	text	text	YES	
+naukri_candidates	highest_education	text	text	YES	
+naukri_candidates	current_location	text	text	YES	
+naukri_candidates	preferred_location	text	text	YES	
+naukri_candidates	naukri_profile_link	text	text	YES	
+naukri_candidates	screening_report_link	text	text	YES	
+naukri_candidates	screening_report_summary	text	text	YES	
+naukri_candidates	folder_description	text	text	YES	
+naukri_candidates	match_score	integer	int4	YES	0
+naukri_candidates	status	text	text	YES	'Candidate Created'::text
+naukri_candidates	resume_json	jsonb	jsonb	YES	
+naukri_candidates	logs	jsonb	jsonb	YES	'[]'::jsonb
+naukri_candidates	vendor_name	text	text	YES	
+naukri_candidates	created_at	timestamp with time zone	timestamptz	YES	now()
+naukri_candidates	updated_at	timestamp with time zone	timestamptz	YES	now()
+naukri_candidates	draft_created	boolean	bool	YES	false
+naukri_candidates	draft_created_time	timestamp with time zone	timestamptz	YES	
+naukri_candidates	candidate_id	text	text	YES	
+naukri_candidates	candidate_created	boolean	bool	YES	false
+naukri_folders	id	uuid	uuid	NO	gen_random_uuid()
+naukri_folders	airtable_record_id	text	text	YES	
+naukri_folders	folder_id	text	text	NO	
+naukri_folders	folder_name	text	text	NO	
+naukri_folders	description	text	text	YES	
+naukri_folders	opening_id	text	text	YES	
+naukri_folders	vendor_id	text	text	YES	
+naukri_folders	vendor_id_number	integer	int4	YES	
+naukri_folders	created_at	timestamp with time zone	timestamptz	YES	now()
+naukri_folders	updated_at	timestamp with time zone	timestamptz	YES	now()
+onboarding_events	id	uuid	uuid	NO	uuid_generate_v4()
+onboarding_events	selected_id	uuid	uuid	NO	
+onboarding_events	event_type	character varying	varchar	NO	
+onboarding_events	event_date	date	date	YES	
+onboarding_events	status	character varying	varchar	YES	
+onboarding_events	notes	text	text	YES	
+onboarding_events	created_at	timestamp with time zone	timestamptz	YES	now()
+onboarding_events	updated_at	timestamp with time zone	timestamptz	YES	now()
+openai_call_logs	id	bigint	int8	NO	nextval('openai_call_logs_id_seq'::regclass)
+openai_call_logs	timestamp	timestamp with time zone	timestamptz	NO	CURRENT_TIMESTAMP
+openai_call_logs	operation	character varying	varchar	NO	
+openai_call_logs	candidate_id	character varying	varchar	YES	
+openai_call_logs	candidate_name	character varying	varchar	YES	
+openai_call_logs	screening_id	character varying	varchar	YES	
+openai_call_logs	status	character varying	varchar	NO	
+openai_call_logs	model	character varying	varchar	YES	
+openai_call_logs	error_message	text	text	YES	
+openai_call_logs	error_code	character varying	varchar	YES	
+openai_call_logs	http_status	integer	int4	YES	
+openai_call_logs	duration_ms	integer	int4	YES	
+openai_call_logs	request_metadata	jsonb	jsonb	YES	
+openai_call_logs	retry_count	integer	int4	YES	0
+openai_call_logs	last_retry_time	timestamp with time zone	timestamptz	YES	
+openai_call_logs	created_at	timestamp with time zone	timestamptz	NO	CURRENT_TIMESTAMP
+opening_skill_question	id	bigint	int8	NO	
+opening_skill_question	skill_map_id	bigint	int8	NO	
+opening_skill_question	question_id	bigint	int8	NO	
+openings	id	uuid	uuid	NO	uuid_generate_v4()
+openings	airtable_id	text	text	NO	
+openings	job_title	text	text	YES	
+openings	opening_id	integer	int4	YES	
+openings	client_department_id	uuid	uuid	YES	
+openings	client_id	uuid	uuid	YES	
+openings	experience_level	text	text	YES	
+openings	number_of_open_positions	numeric	numeric	YES	
+openings	job_description	text	text	YES	
+openings	status	character varying	varchar	YES	
+openings	client_billing	numeric	numeric	YES	
+openings	duration_months	numeric	numeric	YES	
+openings	date_opened	date	date	YES	
+openings	onboarding_process_notes	text	text	YES	
+openings	comments	text	text	YES	
+openings	raw_jd_from_client	jsonb	jsonb	YES	
+openings	max_ctc_lpa	numeric	numeric	YES	
+openings	is_exclusive	boolean	bool	YES	
+openings	max_vendor_budget	numeric	numeric	YES	
+openings	jd_for_prompt	text	text	YES	
+openings	candidate_type	character varying	varchar	YES	
+openings	job_group	ARRAY	_text	YES	
+openings	interview_slots	text	text	YES	
+openings	questionnaire	text	text	YES	
+openings	master_pid_document	text	text	YES	
+openings	recruitment_target_ctc	numeric	numeric	YES	
+openings	maximum_joining_period_days	numeric	numeric	YES	
+openings	maximum_notice_period_allowed	numeric	numeric	YES	
+openings	partner_recruitment_fee_pct	numeric	numeric	YES	
+openings	coding_q1	text	text	YES	
+openings	coding_q2	text	text	YES	
+openings	skill_coding_q1	text	text	YES	
+openings	skill_coding_q2	text	text	YES	
+openings	created_at	timestamp with time zone	timestamptz	YES	now()
+openings	updated_at	timestamp with time zone	timestamptz	YES	now()
+openings	job_visibility	character varying	varchar	YES	
+openings	job_bench_type	character varying	varchar	YES	
+openings	advisory	text	text	YES	
+openings	sync_status	text	text	YES	'SYNCED'::text
+openings_locations_openings	openings_id	uuid	uuid	NO	
+openings_locations_openings	locations_id	uuid	uuid	NO	
+profiles_database	id	uuid	uuid	NO	uuid_generate_v4()
+profiles_database	airtable_id	text	text	NO	
+profiles_database	candidate_id	text	text	YES	
+profiles_database	candidate_name	text	text	YES	
+profiles_database	cv_link	text	text	YES	
+profiles_database	candidate_contact	text	text	YES	
+profiles_database	candidate_email	text	text	YES	
+profiles_database	current_company	text	text	YES	
+profiles_database	notice_period	text	text	YES	
+profiles_database	current_location	text	text	YES	
+profiles_database	preferred_location	character varying	varchar	YES	
+profiles_database	ctc_lpa	numeric	numeric	YES	
+profiles_database	ectc_lpa	numeric	numeric	YES	
+profiles_database	location_id	uuid	uuid	YES	
+profiles_database	govt_id	text	text	YES	
+profiles_database	communication_rating	integer	int4	YES	
+profiles_database	confidence_rating	integer	int4	YES	
+profiles_database	last_working_day	date	date	YES	
+profiles_database	vendors_id	uuid	uuid	YES	
+profiles_database	career_gap	text	text	YES	
+profiles_database	is_resigned	boolean	bool	YES	false
+profiles_database	candidate_document	text	text	YES	
+profiles_database	type_of_id	text	text	YES	
+profiles_database	is_draft	boolean	bool	YES	false
+profiles_database	created_at	timestamp with time zone	timestamptz	YES	now()
+profiles_database	updated_at	timestamp with time zone	timestamptz	YES	now()
+profiles_database	project_summary	text	text	YES	
+profiles_database	employment_history	text	text	YES	
+profiles_database	gap_analysis	text	text	YES	
+profiles_database	jumping_frequency	numeric	numeric	YES	
+profiles_database	extracted_skills	text	text	YES	
+profiles_database	sync_status	character varying	varchar	YES	
+profiles_database	last_sync_at	timestamp with time zone	timestamptz	YES	
+profiles_database	sync_error	text	text	YES	
+profiles_database	edited_cv	text	text	YES	
+questions	id	text	text	NO	nanoid(12)
+questions	question_text	text	text	NO	
+questions	skill_id	bigint	int8	YES	
+questions	difficulty_id	integer	int4	YES	
+ranking_jobs	id	uuid	uuid	NO	uuid_generate_v4()
+ranking_jobs	job_id	integer	int4	NO	
+ranking_jobs	jd	text	text	NO	
+ranking_jobs	status	text	text	NO	'pending'::text
+ranking_jobs	to_rank	jsonb	jsonb	NO	
+ranking_jobs	results	jsonb	jsonb	YES	
+ranking_jobs	created_at	timestamp with time zone	timestamptz	YES	now()
+ranking_jobs	updated_at	timestamp with time zone	timestamptz	YES	now()
+ranking_jobs	error_message	text	text	YES	
+room_vendors	room_id	uuid	uuid	NO	
+room_vendors	vendor_id	uuid	uuid	NO	
+rooms	id	uuid	uuid	NO	uuid_generate_v4()
+rooms	room_name	text	text	YES	
+rooms	daily_start_time	time without time zone	time	YES	
+rooms	daily_end_time	time without time zone	time	YES	
+rooms	days_of_week	ARRAY	_text	YES	'{}'::text[]
+rooms	slot_duration_minutes	integer	int4	YES	30
+rooms	is_active	boolean	bool	YES	true
+rooms	created_at	timestamp with time zone	timestamptz	YES	now()
+rooms	updated_at	timestamp with time zone	timestamptz	YES	now()
+rooms	airtable_id	text	text	YES	
+screener_assignments	screener_id	uuid	uuid	NO	
+screener_assignments	application_id	uuid	uuid	NO	
+screener_assignments	role	character varying	varchar	NO	
+screener_assignments	assigned_at	timestamp with time zone	timestamptz	YES	now()
+screeners_profile	id	uuid	uuid	NO	uuid_generate_v4()
+screeners_profile	airtable_id	text	text	NO	
+screeners_profile	name	character varying	varchar	YES	
+screeners_profile	number	character varying	varchar	YES	
+screeners_profile	status	character varying	varchar	YES	
+screeners_profile	created_at	timestamp with time zone	timestamptz	YES	now()
+screeners_profile	updated_at	timestamp with time zone	timestamptz	YES	now()
+screenings	id	uuid	uuid	NO	uuid_generate_v4()
+screenings	airtable_id	text	text	NO	
+screenings	candidate_id	uuid	uuid	YES	
+screenings	meeting_link	text	text	YES	
+screenings	organizer_email	text	text	YES	
+screenings	vendor_id	uuid	uuid	YES	
+screenings	event_created_time	timestamp with time zone	timestamptz	YES	
+screenings	fetched_time	timestamp with time zone	timestamptz	YES	now()
+screenings	created_email	text	text	YES	
+screenings	event_id	text	text	YES	
+screenings	last_modified	timestamp with time zone	timestamptz	YES	now()
+screenings	created_time	timestamp with time zone	timestamptz	YES	now()
+screenings	status	character varying	varchar	YES	
+screenings	comments	text	text	YES	
+screenings	admin_interview_link	text	text	YES	
+screenings	application_id	uuid	uuid	YES	
+screenings	answer_of_coding_q1	text	text	YES	
+screenings	answer_of_coding_q2	text	text	YES	
+screenings	created_at	timestamp with time zone	timestamptz	YES	now()
+screenings	updated_at	timestamp with time zone	timestamptz	YES	now()
+screenings	screener_audit_report	text	text	YES	
+screenings	interview_breadth_rating	numeric	numeric	YES	
+screenings	interview_depth_rating	numeric	numeric	YES	
+screenings	sop_flow_adherence_rating	numeric	numeric	YES	
+screenings	communication_quality_rating	numeric	numeric	YES	
+screenings	overall_screening_effectiveness_rating	numeric	numeric	YES	
+screenings	room_id	uuid	uuid	YES	
+screenings	scheduled_at	timestamp with time zone	timestamptz	YES	
+screenings	slot_key	text	text	YES	
+screenings	screener_id	uuid	uuid	YES	
+screenings	pre_screening_report	text	text	YES	
+screenings	screening_report_link	text	text	YES	
+screenings	transcript	text	text	YES	
+screenings	question_wise_assessment	jsonb	jsonb	YES	
+screenings	coding_question_assessment	jsonb	jsonb	YES	
+screenings	overall_coverage_pct	numeric	numeric	YES	
+screenings	q1_assessed	text	text	YES	
+screenings	q2_assessed	text	text	YES	
+screenings	post_screening_audit_json	jsonb	jsonb	YES	
+screenings	pre_screening_report_json	jsonb	jsonb	YES	
+screenings	post_screening_report	text	text	YES	
+skill_level_master	id	bigint	int8	NO	
+skill_level_master	level	text	text	NO	
+skill_map	id	bigint	int8	NO	
+skill_map	opening_id	integer	int4	NO	
+skill_map	skill_id	bigint	int8	YES	
+skill_map	level_id	bigint	int8	YES	
+skill_master	id	bigint	int8	NO	
+skill_master	skill_name	text	text	NO	
+skill_master_duplicate	id	bigint	int8	NO	
+skill_master_duplicate	skill_name	text	text	NO	
+skill_master_duplicate	category	text	text	YES	
+skill_master_duplicate	is_relevant	boolean	bool	YES	true
+skill_master_duplicate	master_skill_id	bigint	int8	YES	
+skill_question	id	bigint	int8	NO	
+skill_question	skill_id	bigint	int8	NO	
+skill_question	question_text	text	text	NO	
+skill_question	is_coding_question	boolean	bool	NO	false
+skill_question	difficulty_level	text	text	NO	
+skill_question	expertise_level	bigint	int8	NO	
+status_config	id	uuid	uuid	NO	uuid_generate_v4()
+status_config	domain	character varying	varchar	NO	
+status_config	code	character varying	varchar	NO	
+status_config	label	text	text	NO	
+status_config	color_hex	character varying	varchar	YES	
+status_config	is_terminal	boolean	bool	YES	false
+status_config	sort_order	smallint	int2	YES	0
+status_config	created_at	timestamp with time zone	timestamptz	YES	now()
+status_config	updated_at	timestamp with time zone	timestamptz	YES	now()
+users	id	uuid	uuid	NO	uuid_generate_v4()
+users	airtable_id	text	text	NO	
+users	username	text	text	YES	
+users	password	text	text	YES	
+users	role	text	text	YES	
+users	screener_link	text	text	YES	
+users	pid_authorization	character varying	varchar	YES	
+users	created_at	timestamp with time zone	timestamptz	YES	now()
+users	updated_at	timestamp with time zone	timestamptz	YES	now()
+users	screener_profile_id	uuid	uuid	YES	
+users	vendor_id	uuid	uuid	YES	
+users	namemanual_entry	text	text	YES	
+users	auth_user_id	uuid	uuid	YES	
+vendor_master	id	uuid	uuid	NO	uuid_generate_v4()
+vendor_master	airtable_id	text	text	NO	
+vendor_master	vendor_name	text	text	YES	
+vendor_master	vendor_registration_date	date	date	YES	
+vendor_master	vendor_profiles	text	text	YES	
+vendor_master	vendor_status	character varying	varchar	YES	
+vendor_master	vendor_id_number	numeric	numeric	YES	
+vendor_master	revenue_model	character varying	varchar	YES	
+vendor_master	vendor_poc	character varying	varchar	YES	
+vendor_master	poc_contact_number	character varying	varchar	YES	
+vendor_master	poc_mail_id	character varying	varchar	YES	
+vendor_master	additional_poc_mail_ids	text	text	YES	
+vendor_master	password	character varying	varchar	YES	
+vendor_master	vendor_type	character varying	varchar	YES	
+vendor_master	status	character varying	varchar	YES	
+vendor_master	created_at	timestamp with time zone	timestamptz	YES	now()
+vendor_master	updated_at	timestamp with time zone	timestamptz	YES	now()
+vendor_master	access_naukri_folder	boolean	bool	YES	
+vendor_openings	vendor_id	uuid	uuid	NO	
+vendor_openings	opening_id	uuid	uuid	NO	
+vendor_openings	is_exclusive	boolean	bool	NO	false
+vendor_openings	assigned_at	timestamp with time zone	timestamptz	YES	now()
